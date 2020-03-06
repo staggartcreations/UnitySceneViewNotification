@@ -33,7 +33,7 @@ public class SceneViewNotification : Editor
         n.text = text;
         n.type = type;
 
-        if(notifications.Count >= MaxItems) notifications.RemoveAt(notifications.Count-1);
+        if (notifications.Count >= MaxItems) notifications.RemoveAt(notifications.Count - 1);
 
         notifications.Insert(0, n);
     }
@@ -150,6 +150,46 @@ public class SceneViewNotification : Editor
     static string[] warningMessages = new string[] { "Oops!", "Careful", "Warning!", "Thin ice" };
     static string[] errorMessages = new string[] { "<b>Error!</b>", "Dun goofed!", "Made a boo boo!" };
 
+#if UNITY_2019_1_OR_NEWER
+    [SettingsProvider]
+    public static SettingsProvider SceneViewNotificationSettings()
+    {
+        var provider = new SettingsProvider("Editor/Scene Notifications", SettingsScope.Project)
+        {
+            label = "Scene Notifications",
+            guiHandler = (searchContent) =>
+            {
+                MaxLifetime = EditorGUILayout.Slider("Life time", MaxLifetime, 0.1f, 10f);
+                FadeoutDuration = EditorGUILayout.Slider("Fade time", FadeoutDuration, 0.1f, 10f);
+                MaxItems = EditorGUILayout.IntField("Maximum lines", MaxItems);
+
+                EditorGUILayout.Space();
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.PrefixLabel(" ");
+                    if (GUILayout.Button("Test message"))
+                    {
+                        NotificationType type = (NotificationType)(int)UnityEngine.Random.Range(0, 3);
+
+                        string[] messages = new string[4];
+                        if (type == NotificationType.Info) messages = infoMessages;
+                        if (type == NotificationType.Warning) messages = warningMessages;
+                        if (type == NotificationType.Error) messages = errorMessages;
+
+                        string text = messages[UnityEngine.Random.Range(0, messages.Length)];
+
+                        Add(text, type);
+                    }
+                }
+            },
+
+            keywords = new HashSet<string>(new[] { "Scene", "Notifications", "Log" })
+        };
+
+        return provider;
+    }
+#else
     [PreferenceItem("Scene Notifications")]
     public static void PreferencesGUI()
     {
@@ -177,6 +217,7 @@ public class SceneViewNotification : Editor
             }
         }
     }
+#endif
 
     [InitializeOnLoad]
     sealed class InitializeOnLoad : Editor
@@ -186,7 +227,11 @@ public class SceneViewNotification : Editor
         {
             if (EditorApplication.isPlaying) return;
 
+#if UNITY_2019_1_OR_NEWER
+            SceneView.duringSceneGui += OnScene;
+#else
             SceneView.onSceneGUIDelegate += OnScene;
+#endif
         }
     }
 
