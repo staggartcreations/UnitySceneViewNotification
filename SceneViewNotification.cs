@@ -246,7 +246,7 @@ public class SceneViewNotification : Editor
                 {
                     richText = true,
                     alignment = TextAnchor.MiddleLeft,
-                    wordWrap = true,
+                    wordWrap = false,
                     fontSize = 12,
                     stretchWidth = true,
                     font = (Font)EditorGUIUtility.LoadRequired("Fonts/Lucida Grande.ttf"),
@@ -257,7 +257,8 @@ public class SceneViewNotification : Editor
                         right = 0,
                         top = 0,
                         bottom = 0
-                    }
+                    },
+                    clipping = TextClipping.Overflow
                 };
             }
 
